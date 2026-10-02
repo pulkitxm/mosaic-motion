@@ -1,14 +1,22 @@
 # Mosaic Motion
 
+[![Mosaic Motion animated preview](docs/preview.gif)](https://github.com/pulkitxm/mosaic-motion/releases/download/v1.0.0/mosaic-journey.mp4)
+
+[Watch or download the full 1080p video with sound](https://github.com/pulkitxm/mosaic-motion/releases/download/v1.0.0/mosaic-journey.mp4).
+
 A 30-second, 1920 × 1080 Remotion film with original classical travel artwork. A continuous camera moves across a gold mosaic mural while individual stone tiles reassemble into new scenes.
 
 The film follows the reference's sequence: a portrait assembles from a sketch, an ornate lounge gate opens, a flight seat reclines, suite curtains part, dinner guests lift their glasses, and the mural resolves into a silver travel card. The illustrations, lettering, and ambient soundtrack are original. This is a reconstruction of the movement and visual treatment with a different design.
 
 ## Preview and render
 
-Use Node.js 22.18 or later. Dependencies and generated assets are already installed in this project.
+Use Node.js 22.18 or later.
 
 ```sh
+git clone https://github.com/pulkitxm/mosaic-motion.git
+cd mosaic-motion
+npm ci
+npm run assets
 npm start
 ```
 
@@ -21,14 +29,6 @@ npm run still
 ```
 
 The final video is `renders/mosaic-journey.mp4`. The preview is half resolution. The poster uses the dinner scene at frame 660.
-
-To rebuild from a fresh checkout:
-
-```sh
-npm ci
-npm run assets
-npm start
-```
 
 ## Engine controls
 
@@ -54,9 +54,12 @@ npm run pair -- --before=/absolute/path/before.svg --after=/absolute/path/after.
 
 The generator crops both images to the same 1800 × 1080 canvas, builds matching stone geometry, and records which tiles change. The files are saved under `public/pairs/sample`.
 
-In MosaicLab set `assetFolder` to `pairs/sample`, `scene` to `portrait`, and choose a reveal mode. The scene name identifies the pair's file slots; your images can contain any design. A working sample pair is already generated from the portrait artwork.
+In MosaicLab set `assetFolder` to `pairs/sample`, `scene` to `portrait`, and choose a reveal mode. The scene name identifies the pair's file slots; your images can contain any design.
+
+To build and render the portrait sample referenced by `examples/custom-pair.json`, first run `npm run assets`, then:
 
 ```sh
+npm run pair -- --before=public/art/portrait-before.svg --after=public/art/portrait-after.svg --name=sample
 npx remotion render src/index.ts MosaicLab renders/custom-pair.mp4 --props=examples/custom-pair.json
 ```
 

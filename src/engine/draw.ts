@@ -1,20 +1,29 @@
-import {clamp, noise} from './math';
+import {clamp, noise, tessera} from './math';
 import {tileArrival, tileProgress} from './reveal';
 import {cameraAt, progressAt, scenes, type SceneTiming} from './timeline';
 import type {Assets, EngineSettings, LoadedScene, Manifest} from './types';
 
-type PreparedTile = {x: number; y: number; arrival: number; spin: number; distance: number};
+type PreparedTile = {x: number; y: number; w: number; h: number; mask: Path2D; arrival: number; spin: number; distance: number};
 const tileCache = new Map<string, PreparedTile[]>();
 
 const prepareTiles = (scene: LoadedScene, timing: SceneTiming, manifest: Manifest, seed: number) => {
-  const key = `${scene.id}:${manifest.tileSize}:${seed}`;
+  const key = `${scene.before.src}:${manifest.tileSize}:${seed}:${timing.mode}:${timing.origin.join(',')}`;
   const existing = tileCache.get(key);
   if (existing) return existing;
   const tiles = scene.changed.map((id) => {
-    const x = (id % scene.columns) * manifest.tileSize;
-    const y = Math.floor(id / scene.columns) * manifest.tileSize;
+    const geometry = tessera(id % scene.columns, Math.floor(id / scene.columns), manifest.tileSize, scene.columns, manifest.width, manifest.height, manifest.seed);
+    const x = Math.max(0, Math.min(...geometry.points.map((point) => point[0])) - .6);
+    const y = Math.max(0, Math.min(...geometry.points.map((point) => point[1])) - .6);
+    const w = Math.min(manifest.width - x, Math.max(...geometry.points.map((point) => point[0])) - x + .6);
+    const h = Math.min(manifest.height - y, Math.max(...geometry.points.map((point) => point[1])) - y + .6);
+    const mask = new Path2D();
+    geometry.points.forEach(([px, py], index) => {
+      if (index === 0) mask.moveTo(px - x - w / 2, py - y - h / 2);
+      else mask.lineTo(px - x - w / 2, py - y - h / 2);
+    });
+    mask.closePath();
     return {
-      x, y,
+      x, y, w, h, mask,
       arrival: tileArrival(x, y, timing, seed),
       spin: (noise(id * 23, seed) - .5) * 2.8,
       distance: 6 + noise(id * 47, seed) * 35,
@@ -25,15 +34,14 @@ const prepareTiles = (scene: LoadedScene, timing: SceneTiming, manifest: Manifes
 };
 
 export const drawPanel = (ctx: CanvasRenderingContext2D, scene: LoadedScene, timing: SceneTiming, manifest: Manifest, progress: number, settings: EngineSettings) => {
-  const {width, height, tileSize} = manifest;
+  const {width, height} = manifest;
   ctx.drawImage(progress >= 1 ? scene.after : scene.before, 0, 0, width, height);
   if (progress <= 0 || progress >= 1) return;
   const tiles = prepareTiles(scene, timing, manifest, settings.seed);
   for (const tile of tiles) {
     const p = tileProgress(progress, tile.arrival, settings.revealSoftness);
     if (p <= 0) continue;
-    const w = Math.min(tileSize + .15, width - tile.x);
-    const h = Math.min(tileSize + .15, height - tile.y);
+    const {w, h} = tile;
     if (p >= 1) {
       ctx.drawImage(scene.after, tile.x, tile.y, w, h, tile.x, tile.y, w, h);
       continue;
@@ -51,6 +59,7 @@ export const drawPanel = (ctx: CanvasRenderingContext2D, scene: LoadedScene, tim
     ctx.globalAlpha = clamp(p * 1.5);
     const scale = 1 - swell * .26;
     ctx.scale(scale, scale);
+    ctx.clip(tile.mask);
     ctx.drawImage(scene.after, tile.x, tile.y, w, h, -w / 2, -h / 2, w, h);
     ctx.restore();
     if (swell > .65 && noise(Math.floor(tile.x + tile.y * 37), settings.seed) > .73) {

@@ -1,19 +1,15 @@
 import {createCanvas} from '@napi-rs/canvas';
 import sharp from 'sharp';
-
-export const noise = (n, seed = 42) => {
-  let h = Math.imul(n ^ seed, 0x45d9f3b);
-  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-};
+import {noise, tessera} from '../src/engine/math.ts';
+export {noise};
 
 const bounded = (n) => Math.max(0, Math.min(255, Math.round(n)));
 
-export const rasterizeMosaic = async ({svg, width, height, tileSize, seed}) => {
-  const {data, info} = await sharp(Buffer.from(svg)).ensureAlpha().raw().toBuffer({resolveWithObject: true});
+export const rasterizeMosaic = async ({source, width, height, tileSize, seed}) => {
+  const {data, info} = await sharp(Buffer.from(source)).resize(width, height, {fit: 'cover'}).flatten({background: '#d4ad50'}).ensureAlpha().raw().toBuffer({resolveWithObject: true});
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#4b4331';
+  ctx.fillStyle = '#5a4c33';
   ctx.fillRect(0, 0, width, height);
   const columns = Math.ceil(width / tileSize);
   const rows = Math.ceil(height / tileSize);
@@ -25,45 +21,33 @@ export const rasterizeMosaic = async ({svg, width, height, tileSize, seed}) => {
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < columns; col++) {
       const id = row * columns + col;
-      const jx = (noise(id * 17, seed) - .5) * tileSize * .2;
-      const jy = (noise(id * 19, seed) - .5) * tileSize * .15;
-      const x = col * tileSize + tileSize / 2 + jx;
-      const y = row * tileSize + tileSize / 2 + jy;
+      const {x, y, points} = tessera(col, row, tileSize, columns, width, height, seed);
       const rgb = sample(x, y);
       colors.set(rgb, id * 3);
-      const a = sample(x - 2, y);
-      const b = sample(x + 2, y);
-      const edge = Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
-      const turn = (noise(id * 23, seed) - .5) * .3 + (edge > 95 ? .08 : 0);
-      const half = tileSize * (.40 + noise(id * 29, seed) * .045);
-      const light = .77 + noise(id * 31, seed) * .47;
+      const light = .84 + noise(id * 31, seed) * .40;
       const metal = rgb[0] > rgb[2] * 1.35 && rgb[0] > rgb[1] * 1.05 && rgb[0] > 135;
       const glint = metal && noise(id * 47, seed) > .84 ? 25 : 0;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(turn);
       ctx.beginPath();
-      ctx.moveTo(-half, -half + noise(id * 37, seed) * .7);
-      ctx.lineTo(half - .25, -half);
-      ctx.lineTo(half, half - noise(id * 41, seed) * .7);
-      ctx.lineTo(-half + .1, half);
+      ctx.moveTo(...points[0]);
+      ctx.lineTo(...points[1]);
+      ctx.lineTo(...points[2]);
+      ctx.lineTo(...points[3]);
       ctx.closePath();
       ctx.fillStyle = `rgb(${bounded(rgb[0] * light + glint)},${bounded(rgb[1] * light + glint)},${bounded(rgb[2] * light + glint)})`;
       ctx.fill();
       ctx.strokeStyle = metal ? 'rgba(255,240,161,.45)' : 'rgba(255,250,224,.23)';
-      ctx.lineWidth = .72;
+      ctx.lineWidth = .52;
       ctx.beginPath();
-      ctx.moveTo(-half + .5, half - .4);
-      ctx.lineTo(-half + .5, -half + .5);
-      ctx.lineTo(half - .6, -half + .5);
+      ctx.moveTo(...points[3]);
+      ctx.lineTo(...points[0]);
+      ctx.lineTo(...points[1]);
       ctx.stroke();
       ctx.strokeStyle = 'rgba(17,19,19,.32)';
       ctx.beginPath();
-      ctx.moveTo(half - .2, -half + 1);
-      ctx.lineTo(half - .2, half - .1);
-      ctx.lineTo(-half + .8, half - .1);
+      ctx.moveTo(...points[1]);
+      ctx.lineTo(...points[2]);
+      ctx.lineTo(...points[3]);
       ctx.stroke();
-      ctx.restore();
     }
   }
   return {png: canvas.toBuffer('image/png'), colors, columns, rows};

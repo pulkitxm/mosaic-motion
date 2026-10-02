@@ -6,6 +6,7 @@
   "scripts": {
     "start": "remotion studio src/index.ts --port=3000",
     "assets": "node scripts/build-assets.mjs",
+    "pair": "node scripts/build-pair.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/engine/engine.test.ts",
     "render": "remotion render src/index.ts MosaicJourney renders/mosaic-journey.mp4 --codec=h264 --crf=17 --concurrency=4",

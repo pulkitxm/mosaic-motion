@@ -15,7 +15,7 @@ export const tileArrival = (x: number, y: number, scene: SceneTiming, seed: numb
   } else {
     distance = radius / (scene.id === 'portrait' ? 710 : 920) + Math.sin(angle * 3 + radius * .012) * .065;
   }
-  return clamp(.04 + distance * .67 + (tileNoise - .5) * .10, .015, .83);
+  return clamp(.04 + distance * .67 + (tileNoise - .5) * .10, .015, .78);
 };
 
 export const tileProgress = (progress: number, arrival: number, softness: number) => {

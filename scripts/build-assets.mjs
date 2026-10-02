@@ -1,7 +1,8 @@
 import {mkdir, writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {artwork, WIDTH, HEIGHT} from './artwork.mjs';
-import {noise, rasterizeMosaic} from './mosaic.mjs';
+import {noise} from './mosaic.mjs';
+import {compileMosaic} from './compile-mosaic.mjs';
 
 const option = (name, fallback) => Number(process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback);
 const tileSize = option('tile-size', 4.8);
@@ -11,26 +12,12 @@ if (!Number.isFinite(seed)) throw new Error('Seed must be finite.');
 const root = resolve('public');
 await mkdir(resolve(root, 'art'), {recursive: true});
 await mkdir(resolve(root, 'mosaics'), {recursive: true});
-const scenes = [];
 for (const scene of artwork) {
-  const rendered = [];
   for (const state of ['before', 'after']) {
     await writeFile(resolve(root, 'art', `${scene.id}-${state}.svg`), scene[state]);
-    const result = await rasterizeMosaic({svg: scene[state], width: WIDTH, height: HEIGHT, tileSize, seed});
-    await writeFile(resolve(root, 'mosaics', `${scene.id}-${state}.png`), result.png);
-    rendered.push(result);
   }
-  const changed = [];
-  const [before, after] = rendered;
-  for (let i = 0; i < before.columns * before.rows; i++) {
-    const j = i * 3;
-    const delta = Math.abs(before.colors[j] - after.colors[j]) + Math.abs(before.colors[j + 1] - after.colors[j + 1]) + Math.abs(before.colors[j + 2] - after.colors[j + 2]);
-    if (delta > 10) changed.push(i);
-  }
-  scenes.push({id: scene.id, columns: before.columns, rows: before.rows, changed});
-  process.stdout.write(`${scene.id}: ${before.columns * before.rows} tesserae, ${changed.length} animated tiles\n`);
 }
-await writeFile(resolve(root, 'mosaics', 'manifest.json'), JSON.stringify({width: WIDTH, height: HEIGHT, tileSize, seed, scenes}));
+await compileMosaic({scenes: artwork, directory: resolve(root, 'mosaics'), width: WIDTH, height: HEIGHT, tileSize, seed});
 
 const seconds = 30;
 const rate = 48000;

@@ -19,37 +19,39 @@ const imageAt = (path: string) => {
   return pending;
 };
 
-let assetsPromise: Promise<Assets> | undefined;
+const assetsPromises = new Map<string, Promise<Assets>>();
 
-const loadAssets = () => {
-  if (assetsPromise) return assetsPromise;
-  assetsPromise = (async () => {
-    const response = await fetch(staticFile('mosaics/manifest.json'));
+const loadAssets = (folder: string) => {
+  const existing = assetsPromises.get(folder);
+  if (existing) return existing;
+  const assetsPromise = (async () => {
+    const response = await fetch(staticFile(`${folder}/manifest.json`));
     if (!response.ok) throw new Error('Mosaic assets are missing. Run npm run assets first.');
     const manifest: Manifest = await response.json();
     const loaded = await Promise.all(manifest.scenes.map(async (scene) => {
       const [before, after] = await Promise.all([
-        imageAt(`mosaics/${scene.id}-before.png`),
-        imageAt(`mosaics/${scene.id}-after.png`),
+        imageAt(`${folder}/${scene.id}-before.png`),
+        imageAt(`${folder}/${scene.id}-after.png`),
       ]);
       return {...scene, before, after};
     }));
     return {manifest, scenes: Object.fromEntries(loaded.map((scene) => [scene.id, scene])) as Record<SceneId, LoadedScene>};
   })();
+  assetsPromises.set(folder, assetsPromise);
   return assetsPromise;
 };
 
-export const useAssets = () => {
+export const useAssets = (folder = 'mosaics') => {
   const [assets, setAssets] = useState<Assets | null>(null);
   const {delayRender, continueRender, cancelRender} = useDelayRender();
   const [handle] = useState(() => delayRender('Loading mosaic artwork'));
   useEffect(() => {
     let mounted = true;
-    loadAssets().then((loaded) => {
+    loadAssets(folder).then((loaded) => {
       if (mounted) setAssets(loaded);
       continueRender(handle);
     }).catch(cancelRender);
     return () => {mounted = false;};
-  }, [handle, continueRender, cancelRender]);
+  }, [folder, handle, continueRender, cancelRender]);
   return assets;
 };

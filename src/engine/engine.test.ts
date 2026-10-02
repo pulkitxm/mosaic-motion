@@ -2,6 +2,7 @@ import {strict as assert} from 'node:assert';
 import {test} from 'node:test';
 import {cameraAt, progressAt, scenes, timeAt} from './timeline';
 import {tileArrival, tileProgress} from './reveal';
+import {engineSchema} from '../settings';
 
 test('camera holds each panel while its transformation completes', () => {
   for (const scene of scenes.slice(1)) {
@@ -28,6 +29,7 @@ test('every changed tile reaches a finished state with no premature appearance',
         assert.ok(arrival > 0 && arrival <= .83);
         assert.equal(tileProgress(0, arrival, 1), 0);
         assert.equal(tileProgress(1, arrival, 1), 1);
+        assert.equal(tileProgress(.999, arrival, 1), 1);
         let previous = 0;
         for (let p = 0; p <= 1; p += .025) {
           const current = tileProgress(p, arrival, .36);
@@ -43,4 +45,8 @@ test('tile timing is reproducible and responds to a new seed', () => {
   const scene = scenes[0];
   assert.equal(tileArrival(843, 474, scene, 42), tileArrival(843, 474, scene, 42));
   assert.notEqual(tileArrival(843, 474, scene, 42), tileArrival(843, 474, scene, 91));
+});
+
+test('Studio controls accept authored fractional values', () => {
+  assert.doesNotThrow(() => engineSchema.parse({tileMotion: .85, revealSoftness: .36, lighting: .55, grain: .075, seed: 42}));
 });

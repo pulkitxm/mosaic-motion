@@ -1,0 +1,12 @@
+{
+  "assetFolder": "pairs/sample",
+  "scene": "portrait",
+  "revealMode": "spiral",
+  "originX": 900,
+  "originY": 440,
+  "tileMotion": 0.85,
+  "revealSoftness": 0.36,
+  "lighting": 0.55,
+  "grain": 0.075,
+  "seed": 42
+}

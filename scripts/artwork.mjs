@@ -37,9 +37,9 @@ const column = (x) => {
 
 const palm = (x, y, scale = 1) => {
   let s = path('M-10 0L-5 -310H10L18 0Z', c.ochre, c.ink, 3);
-  for (let i = 0; i < 12; i++) {
-    const angle = -130 + i * 24;
-    s += group(path('M0 0Q-45 -85 4 -230Q48 -112 0 0Z', i % 2 ? c.lightTeal : c.teal, c.ink, 3) + line(0, 0, 4, -210, c.paleGold, 2), `translate(0 -295) rotate(${angle}) scale(.62 .95)`);
+  for (let i = 0; i < 11; i++) {
+    const angle = -82 + i * 16.4;
+    s += group(path('M0 0Q-45 -85 4 -230Q48 -112 0 0Z', i % 2 ? c.lightTeal : c.teal, c.ink, 3) + line(0, 0, 4, -210, c.paleGold, 2), `translate(0 -295) rotate(${angle}) scale(.48 .95)`);
   }
   s += circle(-12, -287, 15, c.red, c.ink, 3) + circle(10, -282, 12, c.red, c.ink, 3);
   for (let yy = -280; yy < -15; yy += 20) s += line(-7, yy, 14, yy + 5, c.ink, 3);

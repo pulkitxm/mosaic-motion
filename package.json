@@ -1,0 +1,32 @@
+{
+  "name": "mosaic-motion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "remotion studio src/index.ts --port=3000",
+    "assets": "node scripts/build-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/engine/engine.test.ts",
+    "render": "remotion render src/index.ts MosaicJourney renders/mosaic-journey.mp4 --codec=h264 --crf=17 --concurrency=4",
+    "render:preview": "remotion render src/index.ts MosaicJourney renders/mosaic-preview.mp4 --scale=0.5 --codec=h264 --crf=20 --concurrency=4",
+    "still": "remotion still src/index.ts MosaicJourney renders/mosaic-poster.png --frame=660"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "@remotion/zod-types": "4.0.532",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.532",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "0.1.80",
+    "@types/node": "22.18.6",
+    "@types/react": "19.1.16",
+    "@types/react-dom": "19.1.9",
+    "sharp": "0.34.4",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

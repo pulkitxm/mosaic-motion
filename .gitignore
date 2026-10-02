@@ -1,0 +1,7 @@
+node_modules/
+work/
+renders/
+.DS_Store
+.cache/
+public/art/
+public/mosaics/

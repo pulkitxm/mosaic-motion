@@ -29,6 +29,7 @@ const prepareTiles = (scene: LoadedScene, timing: SceneTiming, manifest: Manifes
       distance: 6 + noise(id * 47, seed) * 35,
     };
   });
+  if (tileCache.size >= 8) tileCache.delete(tileCache.keys().next().value!);
   tileCache.set(key, tiles);
   return tiles;
 };
@@ -84,6 +85,7 @@ const grainTile = (seed: number) => {
     pixels.data.set([value, value, value, 105], i * 4);
   }
   ctx.putImageData(pixels, 0, 0);
+  if (grainCache.size >= 8) grainCache.delete(grainCache.keys().next().value!);
   grainCache.set(seed, canvas);
   return canvas;
 };
@@ -151,10 +153,41 @@ export const drawJourney = (ctx: CanvasRenderingContext2D, assets: Assets, secon
     ctx.restore();
   }
   ctx.restore();
+  applyCameraBlur(ctx, speed * scale / 30 * .45);
   drawFinish(ctx, width, height, seconds, settings, speed);
   const opening = clamp(seconds / .36);
   if (opening < 1) {
     ctx.fillStyle = `rgba(21,20,16,${1 - opening})`;
     ctx.fillRect(0, 0, width, height);
   }
+};
+
+const blurBuffers = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>();
+
+const applyCameraBlur = (ctx: CanvasRenderingContext2D, distance: number) => {
+  if (Math.abs(distance) < 2) return;
+  const source = ctx.canvas;
+  let buffer = blurBuffers.get(source);
+  if (!buffer) {
+    buffer = document.createElement('canvas');
+    blurBuffers.set(source, buffer);
+  }
+  if (buffer.width !== source.width || buffer.height !== source.height) {
+    buffer.width = source.width;
+    buffer.height = source.height;
+  }
+  const copy = buffer.getContext('2d')!;
+  copy.clearRect(0, 0, source.width, source.height);
+  copy.drawImage(source, 0, 0);
+  ctx.clearRect(0, 0, source.width, source.height);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 1 / 9;
+  for (let i = 0; i < 9; i++) ctx.drawImage(buffer, (i / 8 - .5) * distance, 0);
+  ctx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.fillStyle = '#25251f';
+  ctx.fillRect(0, 0, source.width, source.height);
+  ctx.restore();
 };

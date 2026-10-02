@@ -70,6 +70,8 @@ Edit the vector artwork in `scripts/artwork.mjs`, then regenerate:
 npm run assets
 ```
 
+Reload Studio after regenerating images so its loaded artwork cache refreshes.
+
 Tile size and material seed are build options:
 
 ```sh

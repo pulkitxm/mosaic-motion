@@ -243,7 +243,7 @@ const suite = (opened) => {
 const seatedGuest = (x, y, shirt, skin, female, toast, direction) => {
   let s = path('M-28 -29L-78 2L-87 140L-64 216H76L91 140L64 1L18 -29Z', shirt, c.ink, 5);
   s += path('M-26 -26L-5 28L17 -28M-6 28L-6 205M-62 39L-51 138M51 41L64 142', 'none', c.ink, 3);
-  s += face(skin, c.hair, female);
+  s += direction < 0 ? group(face(skin, c.hair, female), 'scale(-1 1)') : face(skin, c.hair, female);
   if (toast) {
     s += path(direction > 0 ? 'M58 66L91 84L140 -7L141 -27L128 -34L119 -12L84 44L58 37Z' : 'M-59 66L-96 86L-143 -7L-144 -28L-129 -35L-120 -12L-87 44L-57 37Z', skin, c.ink, 4);
     s += wineGlass(direction > 0 ? 140 : -140, -53, .8);

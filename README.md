@@ -1,8 +1,8 @@
 # Mosaic Motion
 
-[![Mosaic Motion animated preview](docs/preview.gif)](https://github.com/pulkitxm/mosaic-motion/releases/download/v1.0.0/mosaic-journey.mp4)
+[![Mosaic Motion animated preview](docs/preview.gif)](https://raw.githubusercontent.com/pulkitxm/mosaic-motion/main/docs/preview.mp4)
 
-[Watch or download the full 1080p video with sound](https://github.com/pulkitxm/mosaic-motion/releases/download/v1.0.0/mosaic-journey.mp4).
+[Watch or download the 30-second video preview with sound](https://raw.githubusercontent.com/pulkitxm/mosaic-motion/main/docs/preview.mp4). The included preview is 540p; `npm run render` exports the full 1080p version.
 
 A 30-second, 1920 × 1080 Remotion film with original classical travel artwork. A continuous camera moves across a gold mosaic mural while individual stone tiles reassemble into new scenes.
 

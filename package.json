@@ -18,7 +18,7 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "remotion": "4.0.532",
-    "zod": "3.25.76"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.80",
